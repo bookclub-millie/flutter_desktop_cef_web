@@ -206,6 +206,10 @@ class FlutterDesktopWebViewController: NSViewController, WKUIDelegate,  WKScript
       mainwindow?.contentView?.addSubview(view!)
     }
   }
+    
+  func setApplicationNameForUserAgent(applicationName: String) {
+    webView.customUserAgent = applicationName
+  }
 }
 
 public class FlutterDesktopCefWebPlugin: NSObject, FlutterPlugin {
@@ -293,6 +297,7 @@ public class FlutterDesktopCefWebPlugin: NSObject, FlutterPlugin {
       let res = ensureWebView(id:id)
       result(res)
     case "setUrl":
+    print("setUrl test")
       let argv:[String:Any] = call.arguments as! [String: Any]
       let url = getString(argva:argv, key:"url");
       let id = getInt(argva: argv, key: "id")
@@ -326,7 +331,11 @@ public class FlutterDesktopCefWebPlugin: NSObject, FlutterPlugin {
       let argv:[String:Any] = call.arguments as! [String: Any]
       let id = getInt(argva: argv, key: "id")
       webViewController?.showWebView(id: id)
-
+        
+    case "setUserAgent" :
+      let argv:[String:Any] = call.arguments as! [String: Any]
+      let userAgent = getString(argva: argv, key: "user-agent")
+      webViewController?.setApplicationNameForUserAgent(applicationName: userAgent)
     default:
       result(FlutterMethodNotImplemented)
     }

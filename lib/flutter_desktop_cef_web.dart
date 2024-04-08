@@ -211,6 +211,11 @@ class FlutterDesktopCefWeb {
     invokeMethod("hide", {});
     isShowing = false;
   }
+
+  void setApplicationNameForUserAgent(String userAgent) {
+    print('setApplicationNameForUserAgent flutter side $userAgent');
+    invokeMethod("setUserAgent", <String, Object>{'user-agent': userAgent});
+  }
   
   void releaseFocus() {
     Future.delayed(const Duration(seconds: 1), () {

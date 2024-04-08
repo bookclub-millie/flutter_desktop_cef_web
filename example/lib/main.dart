@@ -64,7 +64,8 @@ class _MyAppState extends State<MyApp> {
             GestureDetector(
               onTap: () {
                 print('click 4');
-                web.showDevtools();
+                web.setApplicationNameForUserAgent('test');
+                // web.showDevtools();
               },
               child: Icon(
                 Icons.add_alert_sharp,
