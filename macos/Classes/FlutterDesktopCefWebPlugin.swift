@@ -88,6 +88,7 @@ class FlutterDesktopWebViewController: NSViewController, WKUIDelegate,  WKScript
     if (userContentController == nil) {
       userContentController = WKUserContentController()
     }
+
     webConfiguration.userContentController = userContentController!
     webConfiguration.userContentController.add(self, name: "ipcRender")
       if #available(macOS 10.13, *) {
@@ -97,11 +98,21 @@ class FlutterDesktopWebViewController: NSViewController, WKUIDelegate,  WKScript
           // Fallback on earlier versions
         print("kfdebug createWebView setURLSchemeHandler nil")
       }
+
     if (rect != nil) {
       // let mainwindow = NSApplication.shared.mainWindow!
       webView = WKWebView(frame: rect!, configuration: webConfiguration)
       webView.uiDelegate = self
       // views.updateValue(value: webView, forKey: id)
+
+      #if DEBUG
+      if #available(macOS 13.3, *) {
+          webView.isInspectable = true
+      } else {
+       // Fallback on earlier versions
+      }
+      #endif
+
       views[id] = webView
       return webView
     }  else {
@@ -135,7 +146,6 @@ class FlutterDesktopWebViewController: NSViewController, WKUIDelegate,  WKScript
   override func loadView() {
 
   }
-  
 
   override func viewDidLoad() {
         // super.viewDidLoad()
@@ -290,6 +300,7 @@ public class FlutterDesktopCefWebPlugin: NSObject, FlutterPlugin {
       let res = ensureWebView(id:id)
       if (res) {
         webViewController?.loadUrl(url: url, id: id)
+        print("FlutterDesktopCefWebPlugin handle " + call.method + ", success")
       } else {
         webViewController?.loadUrl(url: url, id: id)
         print("FlutterDesktopCefWebPlugin handle " + call.method + ", fail")
