@@ -64,7 +64,7 @@ class _MyAppState extends State<MyApp> {
             GestureDetector(
               onTap: () {
                 print('click 4');
-                web.setApplicationNameForUserAgent('test');
+                web.setApplicationNameForUserAgent('user-agent: pc_flutter/1.0.0;pc_flutter_macos;');
                 // web.showDevtools();
               },
               child: Icon(

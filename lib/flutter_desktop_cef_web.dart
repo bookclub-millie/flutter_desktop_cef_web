@@ -95,15 +95,14 @@ class FlutterDesktopCefWeb {
 
   Widget generateCefContainer(double width, double height) {
     print('generateCefContainer width $width height $height');
-    var container = Expanded(
-        key: _containerKey,
-        child: Container(
-          width: null,
-          color: Colors.transparent,
-          height: height == -1 ? null : height,
-        ));
     hasGeneratedContainer = true;
-    return container;
+    // return container;
+    return Container(
+      key: _containerKey,
+      width: width,
+      color: Colors.transparent,
+      height: height == -1 ? null : height,
+    );
   }
 
   bool innerloadCefContainer() {
@@ -178,6 +177,7 @@ class FlutterDesktopCefWeb {
   }
 
   invokeLoadCef(int x, int y, int width, int height) {
+    print('invokeLoadCef width $width height $height');
     invokeMethod("loadCef", <String, Object>{
       'x': x.toString(),
       'y': y.toString(),

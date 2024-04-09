@@ -4,7 +4,7 @@ import WebKit
 
 
 class ImageSchemehandler: NSObject, WKURLSchemeHandler {
-    
+
     func webView(_ webView: WKWebView, start urlSchemeTask: WKURLSchemeTask) {
        let requestUrl = urlSchemeTask.request.url;
         print("urlSchemeTask webView start " + requestUrl!.absoluteString);
@@ -17,47 +17,47 @@ class ImageSchemehandler: NSObject, WKURLSchemeHandler {
             print("urlSchemeTask url not hit");
             return;
         }
-        
+
         let absolutePath = urlSchemeTask.request.url?.absoluteString;
         let fullPath = absolutePath!.substring(from: absolutePath!.index(absolutePath!.startIndex, offsetBy: prefix.count))
-        
+
         var fileHandle = FileHandle(forReadingAtPath: fullPath);
-        
+
         if #available(macOS 10.15.4, *) {
             var fileData = try? fileHandle?.readToEnd()
-            
+
             if (fileData != nil) {
                 urlSchemeTask.didReceive(URLResponse(url: urlSchemeTask.request.url!, mimeType: "image/png", expectedContentLength: fileData!.count, textEncodingName: "utf-8"));
-                
+
                 urlSchemeTask.didReceive(fileData!);
                 urlSchemeTask.didFinish();
                 print("urlSchemeTask finish");
             } else {
                 // 404 image
-                
+
                 let fullPath404 = Bundle.main.bundlePath + "/Contents/Resources/manoco-editor/404.png"
                 print(fullPath404);
                 fileHandle?.closeFile();
                 fileHandle = FileHandle(forReadingAtPath: fullPath404);
                 fileData = try! fileHandle?.readToEnd();
                 urlSchemeTask.didReceive(URLResponse(url: urlSchemeTask.request.url!, mimeType: "image/png", expectedContentLength: fileData!.count, textEncodingName: "utf-8"));
-                
+
                 urlSchemeTask.didReceive(fileData!);
                 urlSchemeTask.didFinish();
-                
+
             }
-            
+
         } else {
-            
+
 //                urlSchemeTask.didReceive(URLResponse(url: urlSchemeTask.request.url!, statusCode: 405, httpVersion: nil, headerFields: nil))
 //                urlSchemeTask.didFinish();
 //            urlSchemeTask.
             print("version error")
         };
         fileHandle?.closeFile()
-        
+
     }
-    
+
     func webView(_ webView: WKWebView, stop urlSchemeTask: WKURLSchemeTask) {
         let requestUrl = urlSchemeTask.request.url;
         print("load webView stop " + requestUrl!.absoluteString);
@@ -67,13 +67,13 @@ class ImageSchemehandler: NSObject, WKURLSchemeHandler {
         if (!requestUrl!.absoluteString.contains("lowh://")) {
             return;
         }
-        
+
     }
 }
 
 class FlutterDesktopWebViewController: NSViewController, WKUIDelegate,  WKScriptMessageHandler {
-    
-    
+
+
   var webView: WKWebView!
 
   var views: [Int: WKWebView] = [:]
@@ -88,7 +88,7 @@ class FlutterDesktopWebViewController: NSViewController, WKUIDelegate,  WKScript
     if (userContentController == nil) {
       userContentController = WKUserContentController()
     }
-
+      
     webConfiguration.userContentController = userContentController!
     webConfiguration.userContentController.add(self, name: "ipcRender")
       if #available(macOS 10.13, *) {
@@ -102,6 +102,7 @@ class FlutterDesktopWebViewController: NSViewController, WKUIDelegate,  WKScript
     if (rect != nil) {
       // let mainwindow = NSApplication.shared.mainWindow!
       webView = WKWebView(frame: rect!, configuration: webConfiguration)
+      webView.customUserAgent = "user-agent: pc_flutter/1.0.0;pc_flutter_macos;"
       webView.uiDelegate = self
       // views.updateValue(value: webView, forKey: id)
 
@@ -119,7 +120,7 @@ class FlutterDesktopWebViewController: NSViewController, WKUIDelegate,  WKScript
       return nil
     }
   }
-    
+
   func userContentController(
       _ userContentController: WKUserContentController,
       didReceive message: WKScriptMessage
@@ -163,7 +164,7 @@ class FlutterDesktopWebViewController: NSViewController, WKUIDelegate,  WKScript
       penddingRequests[id] =  myRequest
     }
   }
- 
+
   func executeJs(jscode: String, id: Int) {
     let view = views[id]
     if (view != nil) {
@@ -191,7 +192,7 @@ class FlutterDesktopWebViewController: NSViewController, WKUIDelegate,  WKScript
   }
 
   func hideWebView(id: Int) {
-    // 
+    //
     // let mainwindow = NSApplication.shared.mainWindow
     let view = views[id]
     if (view != nil) {
@@ -206,14 +207,26 @@ class FlutterDesktopWebViewController: NSViewController, WKUIDelegate,  WKScript
       mainwindow?.contentView?.addSubview(view!)
     }
   }
-    
-  func setApplicationNameForUserAgent(applicationName: String) {
-    webView.customUserAgent = applicationName
+
+  func setApplicationNameForUserAgent(applicationName: String, id: Int) {
+    print("webviewController setApplicationNameForUserAgent applicationName : " + applicationName)
+//     let view = views[id]! as WKWebView
+//    webView!.customUserAgent = applicationName
+//    print("webviewController setApplicationNameForUserAgent end")
+      
+  let view = views[id]
+  if (view != nil) {
+      print("webviewCOntroller view not null")
+      view?.customUserAgent = applicationName
+  } else {
+      print("webviewCOntroller view null")
+  }
+      
   }
 }
 
 public class FlutterDesktopCefWebPlugin: NSObject, FlutterPlugin {
-  
+
   var webViewController: FlutterDesktopWebViewController? = nil
   var parentView: NSView? = nil
 
@@ -224,13 +237,14 @@ public class FlutterDesktopCefWebPlugin: NSObject, FlutterPlugin {
   static var channel:FlutterMethodChannel? = nil
 
   var webConfig:[Int:[String:Any]] = [:]
-  
+
     public static func OnResize(delay: Bool = false) {
     let data: [String:Bool] = ["delay": delay]
     FlutterDesktopCefWebPlugin.channel?.invokeMethod("onResize", arguments: data)
   }
 
   public static func register(with registrar: FlutterPluginRegistrar) {
+      print("register called")
     let channel = FlutterMethodChannel(name: "flutter_desktop_cef_web", binaryMessenger: registrar.messenger)
     let instance = FlutterDesktopCefWebPlugin()
     registrar.addMethodCallDelegate(instance, channel: channel)
@@ -238,7 +252,7 @@ public class FlutterDesktopCefWebPlugin: NSObject, FlutterPlugin {
     instance.webViewController = FlutterDesktopWebViewController()
     instance.webViewController!.window = FlutterDesktopCefWebPlugin.window
     FlutterDesktopCefWebPlugin.channel = channel
-    
+
   }
 
   func getInt(argva: Any, key: String) -> Int {
@@ -263,7 +277,7 @@ public class FlutterDesktopCefWebPlugin: NSObject, FlutterPlugin {
   public func ensureWebView(id:Int) -> Bool{
       let mainwindow = NSApplication.shared.mainWindow
       if (mainwindow != nil) {
-        let argv = webConfig[id] 
+        let argv = webConfig[id]
         if (argv != nil) {
 
           let x = getInt(argva: argv as Any, key:"x")
@@ -277,6 +291,7 @@ public class FlutterDesktopCefWebPlugin: NSObject, FlutterPlugin {
           // print(titleHeight)
           y = Int(mainwindow!.frame.height) - y - height - titleHeight
           webViewController?.loadWebView( rect:  CGRect.init(x: x, y: y, width: width, height: height), id: id)
+            
           return true
         }
       }
@@ -285,7 +300,7 @@ public class FlutterDesktopCefWebPlugin: NSObject, FlutterPlugin {
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     if (true) {
-       print("FlutterDesktopCefWebPlugin handle " + call.method); 
+       print("FlutterDesktopCefWebPlugin handle " + call.method);
     }
     switch call.method {
     case "getPlatformVersion":
@@ -297,7 +312,7 @@ public class FlutterDesktopCefWebPlugin: NSObject, FlutterPlugin {
       let res = ensureWebView(id:id)
       result(res)
     case "setUrl":
-    print("setUrl test")
+    print("setUrl Called")
       let argv:[String:Any] = call.arguments as! [String: Any]
       let url = getString(argva:argv, key:"url");
       let id = getInt(argva: argv, key: "id")
@@ -326,16 +341,26 @@ public class FlutterDesktopCefWebPlugin: NSObject, FlutterPlugin {
       let argv:[String:Any] = call.arguments as! [String: Any]
       let id = getInt(argva: argv, key: "id")
       webViewController?.hideWebView(id: id)
-      
+
     case "show" :
       let argv:[String:Any] = call.arguments as! [String: Any]
       let id = getInt(argva: argv, key: "id")
       webViewController?.showWebView(id: id)
-        
+
     case "setUserAgent" :
       let argv:[String:Any] = call.arguments as! [String: Any]
       let userAgent = getString(argva: argv, key: "user-agent")
-      webViewController?.setApplicationNameForUserAgent(applicationName: userAgent)
+      let id = getInt(argva: argv, key: "id")
+      print("setUserAgent native userAgent : " + userAgent)
+      let res = ensureWebView(id:id)
+      if (res) {
+        webViewController?.setApplicationNameForUserAgent(applicationName: userAgent, id: id)
+      } else {
+        print("setUserAgent handle " + call.method + ", fail")
+      }
+//      webViewController?.setApplicationNameForUserAgent(applicationName: userAgent, id: id)
+        
+//        result("testestestestset")
     default:
       result(FlutterMethodNotImplemented)
     }
