@@ -102,7 +102,7 @@ class FlutterDesktopWebViewController: NSViewController, WKUIDelegate,  WKScript
     if (rect != nil) {
       // let mainwindow = NSApplication.shared.mainWindow!
       webView = WKWebView(frame: rect!, configuration: webConfiguration)
-      webView.customUserAgent = "user-agent: pc_flutter/1.0.0;pc_flutter_macos;"
+      webView.customUserAgent = "pc_flutter/1.0.0;pc_flutter_macos;"
       webView.uiDelegate = self
       // views.updateValue(value: webView, forKey: id)
 
